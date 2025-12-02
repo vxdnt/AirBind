@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - AirBind{% endblock %}
+
+{% block content %}
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Promoters</h5>
+                <h2 class="card-text">{{ total_users }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Active Events</h5>
+                <h2 class="card-text">{{ total_events }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-dark mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Orders</h5>
+                <h2 class="card-text">{{ total_orders }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Revenue</h5>
+                <h2 class="card-text">₹{{ "%.0f"|format(total_revenue) }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="adminTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" id="pending-orders-tab" data-bs-toggle="tab" data-bs-target="#pending-orders">
+            Pending Orders <span class="badge bg-warning text-dark">{{ pending_orders|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="all-orders-tab" data-bs-toggle="tab" data-bs-target="#all-orders">
+            All Orders
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="pending-commissions-tab" data-bs-toggle="tab"
+            data-bs-target="#pending-commissions">
+            Commissions <span class="badge bg-info text-dark">{{ pending_commissions|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="completed-commissions-tab" data-bs-toggle="tab"
+            data-bs-target="#completed-commissions">
+            Completed Commissions
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events">
+            Events
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users">
+            Promoters
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Pending Orders -->
+    <div class="tab-pane fade show active" id="pending-orders">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Event</th>
+                    <th>Promoter</th>
+                    <th>Client</th>
+                    <th>Amount</th>
+                    <th>Tx ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in pending_orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.event.name }}<br><small>{{ order.ticket_category }} x{{ order.quantity }}</small></td>
+                    <td>{{ order.user.name }}</td>
+                    <td>{{ order.client_name }}<br><small>{{ order.client_mobile }}</small></td>
+                    <td>₹{{ order.total_amount }}</td>
+                    <td>{{ order.transaction_id }}</td>
+                    <td>
+                        <form method="POST" action="/admin/order/update/{{ order.id }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="POST" action="/admin/order/update/{{ order.id }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">No pending orders.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- All Orders -->
+    <div class="tab-pane fade" id="all-orders">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Event</th>
+                    <th>Promoter</th>
+                    <th>Client</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.event.name }}</td>
+                    <td>{{ order.user.name }}</td>
+                    <td>{{ order.client_name }}</td>
+                    <td>₹{{ order.total_amount }}</td>
+                    <td><span
+                            class="badge bg-{{ 'success' if order.status == 'completed' else 'warning' if order.status == 'pending' else 'danger' }}">{{
+                            order.status }}</span></td>
+                    <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">No orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Commissions -->
+    <div class="tab-pane fade" id="pending-commissions">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Promoter</th>
+                    <th>UPI ID</th>
+                    <th>Order Ref</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commission in pending_commissions %}
+                <tr>
+                    <td>{{ commission.user.name }}</td>
+                    <td>{{ commission.user.upi }}</td>
+                    <td>#{{ commission.order_id }} ({{ commission.order.event.name }})</td>
+                    <td>₹{{ "%.2f"|format(commission.amount) }}</td>
+                    <td>
+                        <form method="POST" action="/admin/commission/update/{{ commission.id }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-success btn-sm">Mark Paid</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No pending commissions.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Completed Commissions -->
+    <div class="tab-pane fade" id="completed-commissions">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Promoter</th>
+                    <th>UPI ID</th>
+                    <th>Order Ref</th>
+                    <th>Amount</th>
+                    <th>Date Paid</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commission in completed_commissions %}
+                <tr>
+                    <td>{{ commission.user.name }}</td>
+                    <td>{{ commission.user.upi }}</td>
+                    <td>#{{ commission.order_id }} ({{ commission.order.event.name }})</td>
+                    <td>₹{{ "%.2f"|format(commission.amount) }}</td>
+                    <td>{{ commission.paid_at.strftime('%Y-%m-%d %H:%M') if commission.paid_at else 'N/A' }}</td>
+                    <td><span class="badge bg-success">Paid</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No completed commissions.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Events -->
+    <div class="tab-pane fade" id="events">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>City</th>
+                    <th>Commission</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.name }}</td>
+                    <td>{{ event.date }} {{ event.time }}</td>
+                    <td>{{ event.city }}</td>
+                    <td>{{ event.commission_percent }}%</td>
+                    <td>
+                        <a href="/admin/event/{{ event.id }}/tickets" class="btn btn-info btn-sm">Tickets</a>
+                        <a href="/admin/event/edit/{{ event.id }}" class="btn btn-secondary btn-sm">Edit</a>
+                        <a href="/admin/event/delete/{{ event.id }}" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete event?')">Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No events found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Users -->
+    <div class="tab-pane fade" id="users">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>City</th>
+                    <th>UPI</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.contact }}</td>
+                    <td>{{ u.city }}</td>
+                    <td>{{ u.upi }}</td>
+                    <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

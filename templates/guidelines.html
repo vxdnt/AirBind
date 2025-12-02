@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Guidelines - AirBind{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">General Guidelines</h1>
+        <p class="card-text mt-5">
+            AirBind is a property managed by <strong>SortMyEntries</strong>. We work as official offline
+            ticketing partners for various events.
+        </p>
+    </div>
+    <div class="row g-4">
+
+        <!-- Step 1: Promote -->
+        <div class="col-md-6">
+            <div class="card border-1 h-100">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-success mb-3">1. Promote Events</h4>
+                    <p class="card-text">
+                        Browse the dashboard to find events you want to promote. Click "Details" to access:
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i><strong>Promotional
+                                Text:</strong> Copy the official promotional text.</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i><strong>Flyers:</strong>
+                            Download high-quality event flyers.</li>
+                        <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i><strong>Reference
+                                Links:</strong> Check official event pages for price verification.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Book & Pay -->
+        <div class="col-md-6">
+            <div class="card border-1 h-100">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-success mb-3">2. Booking & Payments</h4>
+                    <p class="card-text">
+                        When you get a booking request:
+                    </p>
+                    <ol>
+                        <li class="mb-2"><strong>Collect Payment:</strong> Receive payment from the client directly to
+                            your account or the AirBind account (mentioned below).</li>
+                        <li class="mb-2"><strong>Create Order:</strong> Use the "Book Now" button on the dashboard.</li>
+                        <li class="mb-2"><strong>Enter Details:</strong> Provide accurate client details (Name, Email,
+                            Mobile) and the <strong>Transaction ID</strong> for verification.</li>
+                        <li class="mb-2"><strong>Verification:</strong> AirBind will verify the transaction and approve
+                            the bookings.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Fulfillment -->
+        <div class="col-md-6">
+            <div class="card border-1 h-100">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-success mb-3">3. Ticket Delivery</h4>
+                    <p class="card-text">
+                        Once the bookings are approved by AirBind:
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-ticket-perforated text-primary me-2"></i>Tickets are punched
+                            directly via online booking platforms.</li>
+                        <li class="mb-2"><i class="bi bi-envelope text-primary me-2"></i>Clients receive tickets on
+                            their linked email ID or contact number.</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>You will see the order
+                            status change to <strong>Completed</strong> in your dashboard.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Commission -->
+        <div class="col-md-6">
+            <div class="card border-1 h-100">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-success mb-3">4. Get Paid</h4>
+                    <p class="card-text">
+                        Commission Payment Process:
+                    </p>
+                    <ol>
+                        <li class="mb-2">Go to the <strong>My Orders</strong> section in your dashboard.</li>
+                        <li class="mb-2">For "Completed" orders, click the <strong>Request Commission</strong> button.
+                        </li>
+                        <li class="mb-2">AirBind will process the payment to your registered <strong>UPI ID</strong>.
+                        </li>
+                        <li class="mb-2">Once paid, the status will update to "Paid".</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="col-12 mt-4">
+            <div class="card border-1">
+                <div class="card-body p-4 text-center">
+                    <h4 class="fw-bold text-dark mb-4"><i class="bi bi-qr-code-scan me-2"></i>Official Payment
+                        Details</h4>
+                    <div class="row align-items-center justify-content-center">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <img src="{{ url_for('static', filename='QR/QR.jpg') }}" alt="AirBind QR Code"
+                                class="img-fluid rounded border shadow-sm" style="max-width: 250px;">
+                            <div class="mt-3">
+                                <a href="{{ url_for('static', filename='QR/QR.jpg') }}" download
+                                    class="btn btn-success">
+                                    <i class="bi bi-download me-1"></i> Download QR Code
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-md-start">
+                            <h5 class="mb-3">Scan to Pay or Use UPI ID</h5>
+                            <div class="p-3 bg-white rounded shadow-sm mb-3">
+                                <p class="mb-1 small">UPI ID: 7715039001@okbizaxis</p>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                <i class="bi bi-info-circle me-1"></i> Verify payee name: <strong>Sortmyentries</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Notes -->
+        <div class="col-12">
+            <div class="alert alert-danger border-1" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Important Policies</h4>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Cancellation:</strong> AirBind has full rights to cancel a booking
+                            depending on ticket availability or other valid reasons.</p>
+                        <p class="mb-2"><strong>Rate Verification:</strong> Promoters are advised to cross-check rates
+                            with online platforms or the reference link in event details.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Data Privacy:</strong> Your data is safe and not shared with anyone.</p>
+                        <p class="mb-0"><strong>Disclaimer:</strong> AirBind apologizes for any information not being
+                            immediately updated on the platform.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact & Support -->
+        <div class="col-12">
+            <div class="card bg-dark text-white border-1">
+                <div class="card-body p-5 text-center">
+                    <h3 class="mb-2">Need Help or Want to List an Event?</h3>
+                    <p class="mb-4">
+                        For any queries, support, or if you want to become a lister:
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="mailto:vedant@sortmyentries.in" class="btn btn-light px-4">
+                            <i class="bi bi-envelope-fill me-2"></i>vedant@sortmyentries.in
+                        </a>
+                        <a href="https://wa.me/+917715039001" target="_blank" class="btn btn-success px-4">
+                            <i class="bi bi-whatsapp me-2"></i>Chat Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

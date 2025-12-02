@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Tickets - AirBind{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>{{ event.name }}</h2>
+        <p class="text-muted">Manage tickets and pricing</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTicketModal">
+            Add Ticket Category
+        </button>
+        <a href="/admin/dashboard" class="btn btn-secondary ms-2">Back</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Availability</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if tickets %}
+                {% for ticket in tickets %}
+                <tr>
+                    <td>
+                        <strong>{{ ticket.category }}</strong><br>
+                        <small class="text-muted">{{ ticket.description }}</small>
+                    </td>
+                    <td>₹{{ ticket.price }}</td>
+                    <td>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar" role="progressbar"
+                                style="width: {{ (ticket.available_quantity / ticket.total_quantity * 100) if ticket.total_quantity > 0 else 0 }}%">
+                            </div>
+                        </div>
+                        <small>{{ ticket.available_quantity }}/{{ ticket.total_quantity }}</small>
+                    </td>
+                    <td>
+                        {% if ticket.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                            data-bs-target="#editTicketModal{{ ticket.id }}">Edit</button>
+                        <a href="/admin/ticket/delete/{{ ticket.id }}" class="btn btn-sm btn-danger"
+                            onclick="return confirm('Delete this ticket category?')">Delete</a>
+                    </td>
+                </tr>
+
+                <!-- Edit Ticket Modal -->
+                <div class="modal fade" id="editTicketModal{{ ticket.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Ticket: {{ ticket.category }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="/admin/ticket/edit/{{ ticket.id }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Category Name</label>
+                                        <input type="text" class="form-control" name="category"
+                                            value="{{ ticket.category }}" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label">Price (₹)</label>
+                                            <input type="number" class="form-control" name="price"
+                                                value="{{ ticket.price }}" step="0.01" required>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label">Total Quantity</label>
+                                            <input type="number" class="form-control" name="total_quantity"
+                                                value="{{ ticket.total_quantity }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Available Quantity</label>
+                                        <input type="number" class="form-control" name="available_quantity"
+                                            value="{{ ticket.available_quantity }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" name="description"
+                                            rows="2">{{ ticket.description }}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" name="is_active">
+                                            <option value="true" {% if ticket.is_active %}selected{% endif %}>Active
+                                            </option>
+                                            <option value="false" {% if not ticket.is_active %}selected{% endif %}>
+                                                Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No tickets configured for this event.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Ticket Modal -->
+<div class="modal fade" id="addTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Ticket Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/admin/ticket/add">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="modal-body">
+                    <input type="hidden" name="event_id" value="{{ event.id }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Category Name</label>
+                        <input type="text" class="form-control" name="category" placeholder="e.g. VIP, Early Bird"
+                            required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Price (₹)</label>
+                            <input type="number" class="form-control" name="price" step="0.01" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Total Quantity</label>
+                            <input type="number" class="form-control" name="total_quantity" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
