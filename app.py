@@ -7,6 +7,10 @@ import os
 import secrets
 from functools import wraps
 
+import smtplib
+from email.mime.text import MIMEText
+import random
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -223,46 +227,97 @@ def login():
     
     return render_template('login.html')
 
+
+def send_email_otp(email):
+    otp = str(random.randint(100000, 999999))
+
+    msg = MIMEText(f"Your AirBind verification OTP is: {otp}")
+    msg['Subject'] = "AirBind Email Verification OTP"
+    msg['From'] = "sortmyentrieshq@gmail.com"
+    msg['To'] = email
+
+    # SMTP Login
+    smtp_server = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+    smtp_port = int(os.getenv('MAIL_PORT', 587))
+    smtp_username = os.getenv('MAIL_USERNAME')
+    smtp_password = os.getenv('MAIL_PASSWORD')
+    
+    if not smtp_username or not smtp_password:
+        print("Error: Mail credentials not configured")
+        return None
+
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.sendmail(smtp_username, email, msg.as_string())
+
+    return otp
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form.get('name')
-        username = request.form.get('username')
-        password = request.form.get('password')
-        email = request.form.get('email')
-        contact = request.form.get('contact')
-        city = request.form.get('city')
-        upi = request.form.get('upi')
-        document = request.form.get('document')
-        
-        # Check if user exists
-        existing_user = User.query.filter(
-            (User.username == username) | (User.email == email)
-        ).first()
-        
-        if existing_user:
-            flash('Username or email already exists', 'error')
-            return render_template('register.html')
-        
-        # Create new user
-        user = User(
-            name=name,
-            username=username,
-            password_hash=generate_password_hash(password),
-            email=email,
-            contact=contact,
-            city=city,
-            upi=upi,
-            document=document
-        )
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
-    
+        session['pending_user'] = request.form.to_dict()
+
+        email = request.form['email']
+        otp = send_email_otp(email)
+
+        session['email_otp'] = otp
+
+        return redirect(url_for('verify_email'))
+
     return render_template('register.html')
+
+
+@app.route('/verify-email', methods=['GET', 'POST'])
+def verify_email():
+    # Ensures session not empty
+    if 'email_otp' not in session or 'pending_user' not in session:
+        flash("Session expired. Please register again.", "warning")
+        return redirect(url_for('register'))
+
+    if request.method == 'POST':
+        user_otp = request.form.get('otp')
+        real_otp = session.get('email_otp')
+
+        print("User OTP:", user_otp)
+        print("Real OTP:", real_otp)
+
+        if user_otp == real_otp:
+            data = session.get('pending_user')
+
+            # Create user
+            user = User(
+                name=data['name'],
+                username=data['username'],
+                email=data['email'],
+                document=data['document'],
+                password_hash=generate_password_hash(data['password']),
+                contact=data['contact'],
+                city=data['city'],
+                upi=data['upi']
+            )
+
+            try:
+                db.session.add(user)
+                db.session.commit()
+            except Exception as e:
+                print("DB ERROR:", e)
+                flash("Database error occurred.", "danger")
+                return redirect(url_for('register'))
+
+            # Clear session
+            session.pop('pending_user', None)
+            session.pop('email_otp', None)
+
+            flash("Registration successful!", "success")
+            return redirect(url_for('login'))
+
+        else:
+            flash("Invalid OTP. Try again.", "danger")
+
+    return render_template('verify_email.html')
+
 
 @app.route('/logout')
 def logout():
@@ -695,8 +750,5 @@ if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_ENV') == 'development'
     port = int(os.getenv('PORT', 8000))
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
-
-
-
 
 
