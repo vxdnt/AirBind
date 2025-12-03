@@ -47,8 +47,14 @@
 
                     <div class="mb-3">
                         <label class="form-label">Event Image</label>
-                        <input type="file" class="form-control" name="image" accept="image/*">
+                        <select class="form-select" name="image" required>
+                            <option value="">Select Image</option>
+                            {% for img in images %}
+                            <option value="{{ img }}">{{ img }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
+
 
                     <div class="mb-3">
                         <label class="form-label">Promotional Text</label>
