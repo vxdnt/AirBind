@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Add Event - AirBind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Add New Event</h5>
+                <a href="/admin/dashboard" class="btn btn-secondary btn-sm">Back</a>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/admin/event/add" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Event Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-control" name="city" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" name="date" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Time</label>
+                            <input type="time" class="form-control" name="time" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Commission (%)</label>
+                            <input type="number" class="form-control" name="commission_percent" step="0.1" min="0"
+                                max="100" value="0.0" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Event Image</label>
+                        <input type="file" class="form-control" name="image" accept="image/*">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Promotional Text</label>
+                        <textarea class="form-control" name="promo_text" rows="4"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Reference URL</label>
+                        <input type="url" class="form-control" name="ref_url">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create Event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

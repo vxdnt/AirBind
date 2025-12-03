@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Register - AirBind{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <h4 class="mb-0 text-center">Register</h4>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('register') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Aadhaar/PAN Number</label>
+                        <input type="text" class="form-control" name="document" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Contact Number</label>
+                        <input type="tel" class="form-control" name="contact" pattern="[0-9]{10}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-control" name="city" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">UPI ID</label>
+                        <input type="text" class="form-control" name="upi" required>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
