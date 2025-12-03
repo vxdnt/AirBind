@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 import secrets
 from functools import wraps
+from flask import abort
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -166,15 +167,23 @@ def allowed_file(filename):
 @app.route('/static/event_images/<path:filename>')
 def serve_event_image(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+from flask import abort
+
 BLOCKED_IPS = {"0.0.0.0"}  # placeholder
 
 def get_ip():
-    return request.headers.get('X-Forwarded-For', request.remote_addr)
+    forwarded_for = request.headers.get('X-Forwarded-For')
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+    return request.remote_addr
 
 @app.before_request
 def log_ip():
     ip = get_ip()
-    print("Visitor IP:", ip)
+    path = request.path
+    user = session.get("user_id", "ANON")
+    print(f"[{datetime.utcnow()}] IP={ip} | User={user} | Path={path}")
 
 @app.before_request
 def block_bad_ips():
@@ -687,6 +696,7 @@ if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_ENV') == 'development'
     port = int(os.getenv('PORT', 8000))
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
+
 
 
 
