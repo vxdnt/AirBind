@@ -37,6 +37,7 @@ class User(db.Model):
     contact = db.Column(db.String(15))
     city = db.Column(db.String(50))
     upi = db.Column(db.String(100))
+    document = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     orders = db.relationship('Order', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -54,6 +55,7 @@ class Event(db.Model):
     commission_percent = db.Column(db.Float, default=0.0)
     image = db.Column(db.String(255))
     promo_text = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     orders = db.relationship('Order', backref='event', lazy=True, cascade='all, delete-orphan')
@@ -206,6 +208,7 @@ def register():
         contact = request.form.get('contact')
         city = request.form.get('city')
         upi = request.form.get('upi')
+        document = request.form.get('document')
         
         # Check if user exists
         existing_user = User.query.filter(
@@ -224,7 +227,8 @@ def register():
             email=email,
             contact=contact,
             city=city,
-            upi=upi
+            upi=upi,
+            document=document
         )
         
         db.session.add(user)
@@ -290,6 +294,7 @@ def user_profile():
         user.contact = request.form.get('contact')
         user.city = request.form.get('city')
         user.upi = request.form.get('upi')
+        user.document = request.form.get('document')
         
         db.session.commit()
         flash('Profile updated successfully!', 'success')
@@ -310,6 +315,11 @@ def create_order():
         ticket = db.session.get(Ticket, ticket_id)
         if not ticket or not ticket.is_active:
             flash('Invalid ticket selected', 'error')
+            return redirect(url_for('user_dashboard'))
+            
+        # Check if event is active
+        if not ticket.event.is_active:
+            flash('Booking for this event is currently closed', 'error')
             return redirect(url_for('user_dashboard'))
         
         # Check availability
@@ -494,18 +504,33 @@ def edit_event(event_id):
     
     return render_template('edit_event.html', user=user, event=event)
 
-@app.route('/admin/event/delete/<int:event_id>')
+@app.route('/admin/event/disable/<int:event_id>')
 @admin_required
-def delete_event(event_id):
+def disable_event(event_id):
     try:
         event = Event.query.get_or_404(event_id)
-        db.session.delete(event)
+        event.is_active = False
         db.session.commit()
         
-        flash('Event deleted successfully!', 'success')
+        flash('Event disabled successfully!', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error deleting event: {str(e)}', 'error')
+        flash(f'Error disabling event: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/event/enable/<int:event_id>')
+@admin_required
+def enable_event(event_id):
+    try:
+        event = Event.query.get_or_404(event_id)
+        event.is_active = True
+        db.session.commit()
+        
+        flash('Event enabled successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error enabling event: {str(e)}', 'error')
     
     return redirect(url_for('admin_dashboard'))
 
