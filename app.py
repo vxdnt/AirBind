@@ -10,6 +10,7 @@ from functools import wraps
 import smtplib
 from email.mime.text import MIMEText
 import random
+import threading
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -228,15 +229,27 @@ def login():
     return render_template('login.html')
 
 
+def send_email_async(msg, smtp_server, smtp_port, smtp_username, smtp_password, email):
+    """Send email in background thread"""
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.sendmail(smtp_username, email, msg.as_string())
+        print(f"OTP email sent successfully to {email}")
+    except Exception as e:
+        print(f"Email error: {e}")
+
+
 def send_email_otp(email):
+    """Generate OTP and send email asynchronously"""
     otp = str(random.randint(100000, 999999))
 
     msg = MIMEText(f"Your AirBind verification OTP is: {otp}")
     msg['Subject'] = "AirBind Email Verification OTP"
-    msg['From'] = "sortmyentrieshq@gmail.com"
+    msg['From'] = os.getenv('MAIL_USERNAME', 'noreply@airbind.com')
     msg['To'] = email
 
-    # SMTP Login
     smtp_server = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
     smtp_port = int(os.getenv('MAIL_PORT', 587))
     smtp_username = os.getenv('MAIL_USERNAME')
@@ -246,10 +259,12 @@ def send_email_otp(email):
         print("Error: Mail credentials not configured")
         return None
 
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.starttls()
-        server.login(smtp_username, smtp_password)
-        server.sendmail(smtp_username, email, msg.as_string())
+    # Run email sending in background thread
+    threading.Thread(
+        target=send_email_async,
+        args=(msg, smtp_server, smtp_port, smtp_username, smtp_password, email),
+        daemon=True
+    ).start()
 
     return otp
 
