@@ -47,6 +47,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Event Image</label>
+
                         {% if event.image %}
                         <div class="mb-2">
                             <img src="{{ url_for('serve_event_image', filename=event.image) }}" class="img-thumbnail"
@@ -54,8 +55,17 @@
                             <small class="text-muted d-block">Current image</small>
                         </div>
                         {% endif %}
-                        <input type="file" class="form-control" name="image" accept="image/*">
+
+                        <select class="form-select" name="image" required>
+                            <option value="{{ event.image }}">{{ event.image }} (current)</option>
+                            {% for img in images %}
+                            {% if img != event.image %}
+                            <option value="{{ img }}">{{ img }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
                     </div>
+
 
                     <div class="mb-3">
                         <label class="form-label">Promotional Text</label>
