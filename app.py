@@ -479,7 +479,11 @@ def edit_event(event_id):
             event.name = request.form.get('name')
             event.description = request.form.get('description')
             event.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
-            event.time = datetime.strptime(request.form.get('time'), '%H:%M').time()
+            time_str = request.form.get('time')
+            try:
+                event.time = datetime.strptime(time_str, '%H:%M:%S').time()
+            except ValueError:
+                event.time = datetime.strptime(time_str, '%H:%M').time()
             event.city = request.form.get('city')
             event.commission_percent = float(request.form.get('commission_percent'))
             event.promo_text = request.form.get('promo_text')
@@ -666,3 +670,4 @@ if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_ENV') == 'development'
     port = int(os.getenv('PORT', 8000))
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
+
