@@ -433,18 +433,13 @@ def admin_dashboard():
 def add_event():
     user = User.query.get(session['user_id'])
     
+    # Get list of images
+    images = []
+    if os.path.exists(app.config['UPLOAD_FOLDER']):
+        images = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(f)]
+    
     if request.method == 'POST':
         try:
-            # Handle file upload
-            image_path = None
-            if 'image' in request.files:
-                file = request.files['image']
-                if file and file.filename and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    filename = f"{secrets.token_hex(8)}_{filename}"
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    image_path = f"{filename}"
-            
             event = Event(
                 name=request.form.get('name'),
                 description=request.form.get('description'),
@@ -454,7 +449,7 @@ def add_event():
                 commission_percent=float(request.form.get('commission_percent')),
                 promo_text=request.form.get('promo_text'),
                 ref_url=request.form.get('ref_url'),
-                image=image_path
+                image=request.form.get('image')
             )
             
             db.session.add(event)
@@ -466,13 +461,18 @@ def add_event():
             db.session.rollback()
             flash(f'Error adding event: {str(e)}', 'error')
     
-    return render_template('add_event.html', user=user)
+    return render_template('add_event.html', user=user, images=images)
 
 @app.route('/admin/event/edit/<int:event_id>', methods=['GET', 'POST'])
 @admin_required
 def edit_event(event_id):
     user = User.query.get(session['user_id'])
     event = Event.query.get_or_404(event_id)
+    
+    # Get list of images
+    images = []
+    if os.path.exists(app.config['UPLOAD_FOLDER']):
+        images = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(f)]
     
     if request.method == 'POST':
         try:
@@ -484,15 +484,7 @@ def edit_event(event_id):
             event.commission_percent = float(request.form.get('commission_percent'))
             event.promo_text = request.form.get('promo_text')
             event.ref_url = request.form.get('ref_url')
-            
-            # Handle file upload
-            if 'image' in request.files:
-                file = request.files['image']
-                if file and file.filename and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    filename = f"{secrets.token_hex(8)}_{filename}"
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    event.image = f"event_images/{filename}"
+            event.image = request.form.get('image')
             
             db.session.commit()
             
@@ -502,7 +494,7 @@ def edit_event(event_id):
             db.session.rollback()
             flash(f'Error updating event: {str(e)}', 'error')
     
-    return render_template('edit_event.html', user=user, event=event)
+    return render_template('edit_event.html', user=user, event=event, images=images)
 
 @app.route('/admin/event/disable/<int:event_id>')
 @admin_required
