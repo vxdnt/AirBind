@@ -229,20 +229,8 @@ def login():
     return render_template('login.html')
 
 
-def send_email_async(msg, smtp_server, smtp_port, smtp_username, smtp_password, email):
-    """Send email in background thread"""
-    try:
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_username, smtp_password)
-            server.sendmail(smtp_username, email, msg.as_string())
-        print(f"OTP email sent successfully to {email}")
-    except Exception as e:
-        print(f"Email error: {e}")
-
-
 def send_email_otp(email):
-    """Generate OTP and send email asynchronously"""
+    """Generate OTP and send email synchronously with timeout"""
     otp = str(random.randint(100000, 999999))
 
     msg = MIMEText(f"Your AirBind verification OTP is: {otp}")
@@ -259,13 +247,17 @@ def send_email_otp(email):
         print("Error: Mail credentials not configured")
         return None
 
-    # Run email sending in background thread
-    threading.Thread(
-        target=send_email_async,
-        args=(msg, smtp_server, smtp_port, smtp_username, smtp_password, email),
-        daemon=True
-    ).start()
-
+    # Send email synchronously with timeout to prevent hanging
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=20) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.sendmail(smtp_username, email, msg.as_string())
+        print(f"✓ OTP email sent successfully to {email}")
+    except Exception as e:
+        print(f"✗ Email error: {e}")
+        # Still return OTP even if email fails, so user can try again
+    
     return otp
 
 
