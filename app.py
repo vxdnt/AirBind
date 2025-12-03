@@ -230,33 +230,50 @@ def login():
 
 
 def send_email_otp(email):
-    """Generate OTP and send email synchronously with timeout"""
+    """Generate OTP and send email via Resend API"""
     otp = str(random.randint(100000, 999999))
-
-    msg = MIMEText(f"Your AirBind verification OTP is: {otp}")
-    msg['Subject'] = "AirBind Email Verification OTP"
-    msg['From'] = os.getenv('MAIL_USERNAME', 'noreply@airbind.com')
-    msg['To'] = email
-
-    smtp_server = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
-    smtp_port = int(os.getenv('MAIL_PORT', 587))
-    smtp_username = os.getenv('MAIL_USERNAME')
-    smtp_password = os.getenv('MAIL_PASSWORD')
     
-    if not smtp_username or not smtp_password:
-        print("Error: Mail credentials not configured")
-        return None
-
-    # Send email synchronously with timeout to prevent hanging
+    resend_api_key = os.getenv('RESEND_API_KEY')
+    from_email = os.getenv('FROM_EMAIL', 'onboarding@resend.dev')
+    
+    if not resend_api_key:
+        print("✗ Error: RESEND_API_KEY not configured")
+        return otp  # Return OTP anyway for testing
+    
+    # Send email via Resend API (uses HTTPS, not blocked by Render)
     try:
-        with smtplib.SMTP(smtp_server, smtp_port, timeout=20) as server:
-            server.starttls()
-            server.login(smtp_username, smtp_password)
-            server.sendmail(smtp_username, email, msg.as_string())
-        print(f"✓ OTP email sent successfully to {email}")
+        import requests
+        
+        response = requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {resend_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'from': from_email,
+                'to': [email],
+                'subject': 'AirBind Email Verification OTP',
+                'html': f'''
+                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h2>AirBind Email Verification</h2>
+                        <p>Your verification OTP is:</p>
+                        <h1 style="color: #4CAF50; font-size: 36px; letter-spacing: 5px;">{otp}</h1>
+                        <p>This OTP is valid for 10 minutes.</p>
+                        <p>If you didn't request this, please ignore this email.</p>
+                    </div>
+                '''
+            },
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            print(f"✓ OTP email sent successfully to {email} via Resend")
+        else:
+            print(f"✗ Resend API error: {response.status_code} - {response.text}")
+            
     except Exception as e:
         print(f"✗ Email error: {e}")
-        # Still return OTP even if email fails, so user can try again
     
     return otp
 
