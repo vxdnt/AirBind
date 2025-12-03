@@ -167,6 +167,22 @@ def allowed_file(filename):
 def serve_event_image(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+BLOCKED_IPS = {"0.0.0.0"}
+
+@app.before_request
+def log_ip():
+    print("Visitor IP:", request.headers.get('X-Forwarded-For', request.remote_addr))
+
+def get_ip():
+    return request.headers.get('X-Forwarded-For', request.remote_addr)
+
+@app.before_request
+def block_bad_ips():
+    ip = get_ip()
+    if ip in BLOCKED_IPS:
+        print(f"Blocked IP tried to access: {ip}")
+        abort(403)  # Forbidden
+
 # ==================== AUTH ROUTES ====================
 @app.route('/')
 def index():
@@ -670,4 +686,5 @@ if __name__ == '__main__':
     debug_mode = os.getenv('FLASK_ENV') == 'development'
     port = int(os.getenv('PORT', 8000))
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
+
 
